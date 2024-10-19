@@ -34,7 +34,19 @@ services:
     extra_hosts:
       - "localhost:host-gateway"
 
-
+  frontend:
+    container_name: frontend
+    build:
+      context: ./packages/frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    networks:
+      - hardhat_network
+    extra_hosts:
+      - "localhost:host-gateway"
+      
 networks:
   hardhat_network:
     driver: bridge
