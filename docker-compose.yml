@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  localfhenix_hh_plugin:
+    container_name: localfhenix_hh_plugin
+    image: ghcr.io/fhenixprotocol/localfhenix:v0.2.4
+    ports:
+      - "42000:3000"
+      - "42069:8547"
+      - "42070:8548"
+    networks:
+      - hardhat_network
+    restart: unless-stopped
+    extra_hosts:
+      - "localhost:host-gateway"
+
+  setup-contracts:
+    container_name: hardhat
+    build:
+      context: ./packages/contracts
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      PRIVATE_KEY: ${PRIVATE_KEY}
+    volumes:
+      - contracts-data:/usr/src/app/packages/contracts/deployments
+    depends_on:
+      localfhenix_hh_plugin:
+        condition: service_started
+    networks:
+      - hardhat_network
+    command: ["/usr/src/app/index.sh"]
+    extra_hosts:
+      - "localhost:host-gateway"
+
+
+networks:
+  hardhat_network:
+    driver: bridge
+
+volumes:
+  contracts-data:

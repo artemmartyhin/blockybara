@@ -1,0 +1,29 @@
+{
+  "name": "satoshi-sync",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^18.0.0",
+    "@commitlint/config-conventional": "^18.0.0",
+    "husky": "^8.0.0",
+    "lerna": "^7.4.1"
+  },
+  "scripts": {
+    "test": "npx lerna run test",
+    "build": "npx lerna run build",
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "@nestjs/axios": "^3.0.2",
+    "dotenv": "^16.3.1"
+  }
+}

@@ -1,0 +1,10 @@
+# Ignore everything in packages/sui/
+packages/sui/*
+
+# Do not ignore Dockerfile and index.sh in packages/sui/
+!packages/sui/Dockerfile
+!packages/sui/index.sh
+
+# Ignore node_modules and environment files
+node_modules
+.env
