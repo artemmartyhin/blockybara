@@ -14,15 +14,14 @@ contract BlockybaraContainer is Ownable, Permissioned {
     struct Blob {
         bytes32 entry;
         euint128 key;
+        uint256 timestamp;
     }
 
-
-    Blob[] private blobs;
+    Blob[] public blobs;
     mapping(address => bool) public permissions;
 
     event PermissionChanged(address indexed user, bool permission);
     event WriteBlob(bytes32 entry, euint128 key);
-    event ShareBlob(bytes32 entry, euint128 key);
     event RemoveBlob(bytes32 entry, euint128 key);
 
 
@@ -40,7 +39,8 @@ contract BlockybaraContainer is Ownable, Permissioned {
             revert LengthMismatch();
         }
         for (uint256 i = 0; i < entries.length; i++) {
-            blobs.push(Blob(entries[i], FHE.asEuint128(keys[i])));
+            blobs.push(Blob(entries[i], FHE.asEuint128(keys[i]), block.timestamp));
+            emit WriteBlob(entries[i], FHE.asEuint128(keys[i]));
         }
     }
 
@@ -54,6 +54,7 @@ contract BlockybaraContainer is Ownable, Permissioned {
                 blobs[id] = blobs[lastIndex];
             }
             blobs.pop();
+            emit RemoveBlob(blobs[id].entry, blobs[id].key);
         }
     }
 
@@ -88,6 +89,11 @@ contract BlockybaraContainer is Ownable, Permissioned {
 
     function permit(address user, bool permission) public onlyOwner {
         permissions[user] = permission;
+        emit PermissionChanged(user, permission);
+    }
+
+    function count() public view returns (uint256) {
+        return blobs.length;
     }
 
 }

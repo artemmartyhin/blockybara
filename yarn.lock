@@ -2114,14 +2114,14 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.17.60.tgz#35f3d6213daed95da7f0f73e75bcc6980e90597b"
   integrity sha512-F0KIgDJfy2nA3zMLmWGKxcH2ZVEtCZXHHdOQs2gSaQ27+lNeEfGxzkIw90aXswATX7AZ33tahPbzy6KAfUreVw==
 
-"@types/node@^18.11.9":
+"@types/node@^18.0.0", "@types/node@^18.11.9":
   version "18.19.57"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.19.57.tgz#a075ff6bb71a947d410a9d7ad2b6cb010a0c5230"
   integrity sha512-I2ioBd/IPrYDMv9UNR5NlPElOZ68QB7yY5V2EsLtSrTO0LM0PnCEFF9biLWHf5k+sIy4ohueCV9t4gk1AEdlVA==
   dependencies:
     undici-types "~5.26.4"
 
-"@types/node@^20", "@types/node@^20.0.0":
+"@types/node@^20":
   version "20.16.13"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-20.16.13.tgz#148c152d757dc73f8d65f0f6f078f39050b85b0c"
   integrity sha512-GjQ7im10B0labo8ZGXDGROUl9k0BNyDgzfGpb4g/cl+4yYDWVKcozANF4FGr4/p0O/rAkQClM6Wiwkije++1Tg==
@@ -2755,6 +2755,13 @@ axe-core@^4.10.0:
   version "4.10.1"
   resolved "https://registry.yarnpkg.com/axe-core/-/axe-core-4.10.1.tgz#7d2589b0183f05b0f23e55c2f4cdf97b5bdc66d9"
   integrity sha512-qPC9o+kD8Tir0lzNGLeghbOrWMr3ZJpaRlCIb6Uobt/7N4FiEDvqUMnxzCHRHmg8vOg14kr5gVNyScRmbMaJ9g==
+
+axios-retry@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/axios-retry/-/axios-retry-4.5.0.tgz#441fdc32cedf63d6abd5de5d53db3667afd4c39b"
+  integrity sha512-aR99oXhpEDGo0UuAlYcn2iGRds30k366Zfa05XWScR9QaQD4JYiP3/1Qt1u7YlefUOK+cn0CcwoL1oefavQUlQ==
+  dependencies:
+    is-retry-allowed "^2.2.0"
 
 axios@^0.21.1:
   version "0.21.4"
@@ -4975,12 +4982,12 @@ fhenixjs@0.2.1, fhenixjs@^0.2.1:
     tweetnacl "^1.0.3"
     tweetnacl-util "^0.15.1"
 
-fhenixjs@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/fhenixjs/-/fhenixjs-0.4.0.tgz#f17e87e8b398fbe22e732bcc8aa00b72ee8d698d"
-  integrity sha512-8N4sB5pydspKP3A+SkEs12zPLpZ0RDtyvFwX8CaHywTtnqHaB7mL7nAfQiTH9vOUv9xC34r3g1YzcpaaRFjiyQ==
+fhenixjs@0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/fhenixjs/-/fhenixjs-0.3.0.tgz#f46d0fd9136c9157752522f541ba53b1bee2cbbe"
+  integrity sha512-CS4MDv3jYkrxPcGVcVIaG3unLvN52Ik7tb6Ci8l+i4AlSIJHA9Wus8JMoptSzCkBSt6Go8v5n+juqCaSB5nSdg==
   dependencies:
-    "@types/node" "^20.0.0"
+    "@types/node" "^18.0.0"
     tweetnacl "^1.0.3"
     tweetnacl-util "^0.15.1"
 
@@ -6318,6 +6325,11 @@ is-regex@^1.1.4:
   dependencies:
     call-bind "^1.0.2"
     has-tostringtag "^1.0.0"
+
+is-retry-allowed@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/is-retry-allowed/-/is-retry-allowed-2.2.0.tgz#88f34cbd236e043e71b6932d09b0c65fb7b4d71d"
+  integrity sha512-XVm7LOeLpTW4jV19QSH38vkswxoLud8sQ57YwJVTPWdiaI9I8keEhGFpBlslyVsgdQy4Opg8QOLb8YRgsyZiQg==
 
 is-set@^2.0.2, is-set@^2.0.3:
   version "2.0.3"

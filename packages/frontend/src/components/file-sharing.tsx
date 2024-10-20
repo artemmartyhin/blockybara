@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Menu } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ethers } from 'ethers';
+import { ethers, zeroPadBytes } from 'ethers';
 import HubABI from '@/abi/Hub.json';  // Path to Hub contract ABI
 import ContainerABI from '@/abi/Container.json';  // Path to Container contract ABI
 import { Folder, Share2, Share, BarChart, LineChart } from "lucide-react";
@@ -20,11 +20,6 @@ declare global {
     ethereum: any;
   }
 }
-
-const mockSharedFiles = [
-  { id: 3, name: 'shared_doc.docx', size: '1.2 MB', sharedBy: '0x1234...5678' },
-  { id: 4, name: 'shared_image.png', size: '3.7 MB', sharedBy: '0x8765...4321' },
-];
 
 const mockFileCountData = [
   { month: 'Jan', count: 10 },
@@ -53,21 +48,18 @@ export function FileSharing() {
   const [recipientAddress, setRecipientAddress] = useState('');
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:4000";
   const [userFiles, setUserFiles] = useState<{ id: string }[]>([]);
-  const HUB_CONTRACT_ADDRESS = "0xf0837F870dBcB63c8A4488288A16a909c315b457";  // Example address
-  const [sharedFiles, setSharedFiles] = useState(mockSharedFiles);
+  const HUB_CONTRACT_ADDRESS = "0xf0837F870dBcB63c8A4488288A16a909c315b457"; 
 
-  // MetaMask connection and address handling
- // Updated connectMetaMask function to call checkOrCreateContainer after connection
   const connectMetaMask = async () => {
     if (window.ethereum) {
       try {
         const newProvider = new ethers.BrowserProvider(window.ethereum);
         const accounts = await newProvider.send('eth_requestAccounts', []);
-        setProvider(newProvider); // Set the provider
-        setAddress(accounts[0]); // Set the address
-        setIsConnected(true); // Mark as connected
+        setProvider(newProvider);
+        setAddress(accounts[0]);
+        setIsConnected(true); 
         console.log("MetaMask connected, calling checkOrCreateContainer...");
-        await checkOrCreateContainer(newProvider, accounts[0]); // Pass the provider and address to the container checker
+        await checkOrCreateContainer(newProvider, accounts[0]); 
 
         window.ethereum.on('accountsChanged', (accounts: string[]) => {
           if (accounts.length > 0) {
@@ -134,11 +126,22 @@ useEffect(() => {
       });
 
       const fileId = uploadResponse.data.fileId;
-      const eaesKey = uploadResponse.data.eaesKey;
+      const eaesKeyBase64 = uploadResponse.data.eaesKey.data;
+
+      // Convert the base64 string back to Uint8Array
+      const eaesKeyBytes = new Uint8Array(Buffer.from(eaesKeyBase64, 'base64'));  // Decode base64
+      
+      // Recreate the eaesKey object
+      const eaesKey = {
+        data: eaesKeyBytes,
+        securityZone: uploadResponse.data.eaesKey.securityZone
+      };
       const signer =  await provider.getSigner();
       const containerContract = new ethers.Contract(containerAddress, ContainerABI, signer);
-      console.log(aesKey);
-      const tx = await containerContract.write([fileId], [eaesKey]); 
+      console.log(eaesKey)
+      const key = ethers.keccak256(ethers.toUtf8Bytes(fileId));
+      
+      const tx = await containerContract.write([key], [eaesKey], { gasLimit: 5000000 });
       await tx.wait();
 
       alert(`File processed and uploaded successfully. Data ID: ${fileId}`);

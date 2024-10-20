@@ -44,6 +44,8 @@ export interface BlockybaraContainerInterface extends Interface {
     nameOrSignature:
       | "access"
       | "accessBatch"
+      | "blobs"
+      | "count"
       | "eip712Domain"
       | "fetch"
       | "fetchAll"
@@ -62,7 +64,6 @@ export interface BlockybaraContainerInterface extends Interface {
       | "OwnershipTransferred"
       | "PermissionChanged"
       | "RemoveBlob"
-      | "ShareBlob"
       | "WriteBlob"
   ): EventFragment;
 
@@ -74,6 +75,8 @@ export interface BlockybaraContainerInterface extends Interface {
     functionFragment: "accessBatch",
     values: [BigNumberish[], PermissionStruct]
   ): string;
+  encodeFunctionData(functionFragment: "blobs", values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: "count", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "eip712Domain",
     values?: undefined
@@ -111,6 +114,8 @@ export interface BlockybaraContainerInterface extends Interface {
     functionFragment: "accessBatch",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "blobs", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "count", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "eip712Domain",
     data: BytesLike
@@ -172,19 +177,6 @@ export namespace PermissionChangedEvent {
 }
 
 export namespace RemoveBlobEvent {
-  export type InputTuple = [entry: BytesLike, key: BigNumberish];
-  export type OutputTuple = [entry: string, key: bigint];
-  export interface OutputObject {
-    entry: string;
-    key: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace ShareBlobEvent {
   export type InputTuple = [entry: BytesLike, key: BigNumberish];
   export type OutputTuple = [entry: string, key: bigint];
   export interface OutputObject {
@@ -265,6 +257,20 @@ export interface BlockybaraContainer extends BaseContract {
     "view"
   >;
 
+  blobs: TypedContractMethod<
+    [arg0: BigNumberish],
+    [
+      [string, bigint, bigint] & {
+        entry: string;
+        key: bigint;
+        timestamp: bigint;
+      }
+    ],
+    "view"
+  >;
+
+  count: TypedContractMethod<[], [bigint], "view">;
+
   eip712Domain: TypedContractMethod<
     [],
     [
@@ -329,6 +335,22 @@ export interface BlockybaraContainer extends BaseContract {
     [string[]],
     "view"
   >;
+  getFunction(
+    nameOrSignature: "blobs"
+  ): TypedContractMethod<
+    [arg0: BigNumberish],
+    [
+      [string, bigint, bigint] & {
+        entry: string;
+        key: bigint;
+        timestamp: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "count"
+  ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "eip712Domain"
   ): TypedContractMethod<
@@ -411,13 +433,6 @@ export interface BlockybaraContainer extends BaseContract {
     RemoveBlobEvent.OutputObject
   >;
   getEvent(
-    key: "ShareBlob"
-  ): TypedContractEvent<
-    ShareBlobEvent.InputTuple,
-    ShareBlobEvent.OutputTuple,
-    ShareBlobEvent.OutputObject
-  >;
-  getEvent(
     key: "WriteBlob"
   ): TypedContractEvent<
     WriteBlobEvent.InputTuple,
@@ -468,17 +483,6 @@ export interface BlockybaraContainer extends BaseContract {
       RemoveBlobEvent.InputTuple,
       RemoveBlobEvent.OutputTuple,
       RemoveBlobEvent.OutputObject
-    >;
-
-    "ShareBlob(bytes32,uint256)": TypedContractEvent<
-      ShareBlobEvent.InputTuple,
-      ShareBlobEvent.OutputTuple,
-      ShareBlobEvent.OutputObject
-    >;
-    ShareBlob: TypedContractEvent<
-      ShareBlobEvent.InputTuple,
-      ShareBlobEvent.OutputTuple,
-      ShareBlobEvent.OutputObject
     >;
 
     "WriteBlob(bytes32,uint256)": TypedContractEvent<

@@ -5,7 +5,7 @@ import fs from "fs";
 import path from "path";
 import axios from "axios";
 import FormData from "form-data";
-import { FhenixClient, getPermit } from "fhenixjs";
+import { EncryptionTypes, FhenixClient, getPermit } from "fhenixjs";
 import { ethers } from "ethers";
 
 const uploadsDir = path.join(__dirname, "uploads");
@@ -56,21 +56,22 @@ export const processFile = async (req: Request, res: Response) => {
     fs.writeFileSync(encryptedFilePath, Buffer.concat([iv, encrypted]));
     const formData = new FormData();
     formData.append("file", fs.createReadStream(encryptedFilePath), file.filename);
-    const publisherUrl = "https://wal-publisher-testnet.staketab.org/v1/store?epochs=5";
+    const publisherUrl = "https://publisher.walrus-testnet.walrus.space/v1/store?epochs=2";
     console.log("Uploading encrypted file to publisher...");
     const response = await axios.put(publisherUrl, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
-      },
-      timeout: 120000
+      }
     });
     console.log("File uploaded to publisher.");
     const fileId = response.data.newlyCreated.blobObject.id;
     fs.unlinkSync(encryptedFilePath);
     const provider = new ethers.JsonRpcProvider("https://api.helium.fhenix.zone");
     const client = new FhenixClient({provider});
-    const eaesKey = await client.encrypt_uint128(req.body.aesKey, 1);
-    res.status(201).json({ message: "File processed, encrypted, and uploaded", fileId, eaesKey });
+    console.log("Encrypting AES ", Number(req.body.aesKey));
+    const eaesKey = await client.encrypt(Number(req.body.aesKey), EncryptionTypes.uint128);
+    const eaesKeyBase64 = Buffer.from(eaesKey.data).toString('base64');
+    res.status(201).json({ message: "File processed, encrypted, and uploaded", fileId, eaesKey: { data: eaesKeyBase64, securityZone: 0 } });
   } catch (err) {
     console.error("Error processing or uploading file:", err);
     res.status(500).json({ message: "Error processing or uploading file", error: err.message });
@@ -83,11 +84,11 @@ export const requestDecryptedFile = async (req: Request, res: Response) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { container, sender } = req.body;
+  const { container } = req.body;
   const provider = new ethers.JsonRpcProvider("https://api.helium.fhenix.zone");
   const client = new FhenixClient({ provider });
   const permit = await getPermit(container, provider);
-  client.storePermit(permit, sender);
+  client.storePermit(permit);
   res.status(200).json({ permit });
 }
 
