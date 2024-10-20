@@ -8,7 +8,14 @@ import { Upload, Share2, Folder, Share, Menu, BarChart, LineChart } from "lucide
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bar, BarChart as RechartsBarChart, Line, LineChart as RechartsLineChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import axios from "axios"
 
+// Extend the Window interface to include the ethereum property
+declare global {
+  interface Window {
+    ethereum: any;
+  }
+}
 // Mock data for demonstration purposes
 const mockUserFiles = [
   { id: 1, name: 'document.pdf', size: '2.5 MB' },
@@ -43,19 +50,56 @@ export function FileSharing() {
   const [address, setAddress] = useState('0xYourAddress...1234')
   const [userFiles, setUserFiles] = useState(mockUserFiles)
   const [sharedFiles, setSharedFiles] = useState(mockSharedFiles)
-
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:4000";  
+ 
   const connectMetaMask = async () => {
-    // Simulating connection for demonstration
-    setIsConnected(true)
-    setAddress('0xConnectedAddress...5678')
-  }
-
-  const handleFileUpload = (event: any) => {
-    const file = event.target.files[0]
-    if (file) {
-      setUserFiles([...userFiles, { id: Date.now(), name: file.name, size: `${(file.size / 1024 / 1024).toFixed(2)} MB` }])
+    if (window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        setIsConnected(true);
+        setAddress(accounts[0]);
+        
+        window.ethereum.on('accountsChanged', (accounts: string[]) => {
+          if (accounts.length > 0) {
+            setAddress(accounts[0]);
+          } else {
+            setIsConnected(false);
+          }
+        });
+        
+      } catch (error) {
+        console.error("Error connecting to MetaMask:", error);
+        alert("Failed to connect MetaMask. Please try again.");
+      }
+    } else {
+      alert("MetaMask is not installed. Please install MetaMask and try again.");
     }
-  }
+  };
+  
+
+  const handleFileUpload = async (event: any) => {
+    const file = event.target.files[0];
+    if (!file) return;
+  
+    try {
+      const aesKeyResponse = await axios.post(`${backendUrl}/request-aes-key`);
+      const aesKey = aesKeyResponse.data.aesKey;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("aesKey", aesKey);
+  
+      const uploadResponse = await axios.post(`${backendUrl}/process`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+  
+      alert(`File processed and uploaded successfully. Data ID: ${uploadResponse.data.fileId}`);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      alert("Error uploading file, please try again.");
+    }
+  };
 
   const shareFile = (fileId: any, recipientAddress: any) => {
     alert(`Sharing file ${fileId} with ${recipientAddress}`)

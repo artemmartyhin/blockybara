@@ -33,19 +33,39 @@ services:
     command: ["/usr/src/app/index.sh"]
     extra_hosts:
       - "localhost:host-gateway"
+      
+  backend:
+    container_name: backend
+    build:
+      context: ./packages/backend
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - setup-contracts
+    networks:
+      - hardhat_network
+    extra_hosts:
+      - "localhost:host-gateway"
 
   frontend:
     container_name: frontend
     build:
       context: ./packages/frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
+      - BACKEND_URL=http://localhost:4000
     networks:
       - hardhat_network
     extra_hosts:
       - "localhost:host-gateway"
+
       
 networks:
   hardhat_network:

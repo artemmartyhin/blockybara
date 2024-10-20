@@ -1,37 +1,50 @@
-# Stage 1: Build the app
-FROM node:18-alpine AS builder
+# Stage 1: Install dependencies
+FROM node:18-alpine AS deps
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and yarn.lock to install dependencies
+# Copy only the frontend package's package.json and yarn.lock
 COPY package.json ./
 
-# Install all dependencies (including devDependencies)
+# Install dependencies locally
 RUN yarn install --frozen-lockfile
+
+# Stage 2: Build the app
+FROM node:18-alpine AS builder
+
+WORKDIR /app
 
 # Copy the rest of the app files
 COPY . .
 
+# Copy node_modules from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Add node_modules/.bin to PATH
+ENV PATH /app/node_modules/.bin:$PATH
+
 # Build the Next.js app
 RUN yarn build
 
-# Stage 2: Serve the app using a lightweight image
+# Stage 3: Serve the app using a lightweight image
 FROM node:18-alpine AS runner
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the build output from the previous stage
+ENV NODE_ENV production
+
+# Copy package.json and install only production dependencies
+COPY package.json ./
+RUN yarn install --production --frozen-lockfile
+
+# Copy the build output and necessary files from the builder stage
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/src/public ./public
-COPY --from=builder /app/package.json ./
-
-# Install only production dependencies
-RUN yarn install --production --frozen-lockfile
+COPY --from=builder /app/next.config.mjs ./
+COPY --from=builder /app/node_modules ./node_modules
 
 # Expose port 3000
 EXPOSE 3000
 
 # Start the Next.js app
-CMD ["npx", "next", "start"]
+CMD ["yarn", "start"]
