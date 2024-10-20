@@ -53,12 +53,6 @@ async function main() {
   }
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY as string, ethers.provider);
   const signerAddress = await signer.getAddress();
-  const response = await fetch(`http://localfhenix_hh_plugin:3000/faucet?address=${signerAddress}`);
-  if (response.status !== 200) {
-    throw new Error(
-      `Failed to get funds from faucet: ${response.status}: ${response.statusText}`,
-    );
-  }
   await new Promise(resolve => setTimeout(resolve, 5000))
   const blockybaraHub = await ethers.getContractFactory("BlockybaraHub", signer);
   const instance = await blockybaraHub.deploy(signerAddress);

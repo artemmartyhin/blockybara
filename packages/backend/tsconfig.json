@@ -2,6 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "ES6",
+    "resolveJsonModule": true,
     "esModuleInterop": true,
     "baseUrl": "./",
     "typeRoots": ["./types", "./node_modules/@types"]

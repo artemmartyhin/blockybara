@@ -5,6 +5,7 @@ import {
   requestAESKey,
   processFile,
   requestDecryptedFile,
+  decryptFile
 } from "./service";
 
 const router = express.Router();
@@ -19,11 +20,19 @@ router.post(
   processFile
 );
 
+
 router.post(
   "/request",
-  body("dataId").isString().withMessage("Invalid data ID"),
-  body("aesKey").isString().withMessage("Invalid AES key"),
+  body("container").isString().withMessage("Invalid container address"),
+  body("sender").isString().withMessage("Invalid sender address"),
   requestDecryptedFile
+);
+
+router.post(
+  "/decrypt",
+  body("aesKey").isString().withMessage("Invalid AES key"),
+  body("blobId").isString().withMessage("Invalid blob ID"),
+  decryptFile
 );
 
 export default router;

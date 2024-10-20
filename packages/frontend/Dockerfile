@@ -1,5 +1,5 @@
 # Stage 1: Install dependencies
-FROM node:18-alpine AS deps
+FROM node:20-alpine AS deps
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ COPY package.json ./
 RUN yarn install --frozen-lockfile
 
 # Stage 2: Build the app
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -27,7 +27,7 @@ ENV PATH /app/node_modules/.bin:$PATH
 RUN yarn build
 
 # Stage 3: Serve the app using a lightweight image
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 
 WORKDIR /app
 

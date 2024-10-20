@@ -1,49 +1,93 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 pragma solidity ^0.8.24;
-import "@fhenixprotocol/contracts/FHE.sol";
+import {FHE, euint128, inEuint128} from "@fhenixprotocol/contracts/FHE.sol";
+import "@fhenixprotocol/contracts/access/Permissioned.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract BlockybaraContainer is Ownable {
-    using FHE for euint64;
-    mapping(uint256 => bytes) private blobs;
-    uint256 private counter;
 
+error Unauthorized();
+error LengthMismatch();
+contract BlockybaraContainer is Ownable, Permissioned {
+    using FHE for euint128;
+
+    struct Blob {
+        bytes32 entry;
+        euint128 key;
+    }
+
+
+    Blob[] private blobs;
     mapping(address => bool) public permissions;
 
-    constructor(address owner) Ownable(owner) {
-        permissions[owner] = true;
-    }
+    event PermissionChanged(address indexed user, bool permission);
+    event WriteBlob(bytes32 entry, euint128 key);
+    event ShareBlob(bytes32 entry, euint128 key);
+    event RemoveBlob(bytes32 entry, euint128 key);
 
-    function write(uint256[] memory id, bytes[] memory data) public {
-        require(permissions[msg.sender], "permission denied");
-        require(id.length == data.length, "id and data length mismatch");
-        for (uint256 i = 0; i < id.length; i++) {
-            blobs[id[i]] = data[i];
+
+    modifier onlyAuthorized() {
+        if (!permissions[msg.sender]) {
+            revert Unauthorized();
         }
-        counter += id.length;
+        _;
     }
 
-    function remove(uint256[] memory id) public onlyOwner {
-        for (uint256 i = 0; i < id.length; i++) {
-            delete blobs[id[i]];
+    constructor(address owner) Ownable(owner) {}
+
+    function write(bytes32[] memory entries, inEuint128[] memory keys) public onlyOwner{
+        if(entries.length != keys.length){
+            revert LengthMismatch();
         }
-        counter -= id.length;
+        for (uint256 i = 0; i < entries.length; i++) {
+            blobs.push(Blob(entries[i], FHE.asEuint128(keys[i])));
+        }
     }
 
-    function fetch(uint256 id) public view returns (bytes memory) {
-        return blobs[id];
+    function remove(uint256[] memory ids) public onlyOwner {
+        for (uint256 i = 0; i < ids.length; i++) {
+            uint256 id = ids[i];
+            require(id < blobs.length, "Invalid ID");
+
+            uint256 lastIndex = blobs.length - 1;
+            if (id != lastIndex) {
+                blobs[id] = blobs[lastIndex];
+            }
+            blobs.pop();
+        }
     }
 
-    function fetchAll() public view returns (bytes[] memory) {
-        bytes[] memory result = new bytes[](counter);
+
+    function fetch(uint256 id) public view returns (bytes32) {
+        return blobs[id].entry;
+    }
+
+    function fetchAll() public view returns (bytes32[] memory) {
+        bytes32[] memory result = new bytes32[](blobs.length);
         uint256 j = 0;
-        for (uint256 i = 0; i < counter; i++) {
-            if (blobs[i].length > 0) {
-                result[j] = blobs[i];
+        for (uint256 i = 0; i < blobs.length; i++) {
+            if (blobs[i].entry != 0) {
+                result[j] = bytes32(blobs[i].entry);
                 j++;
             }
         }
         return result;
     }
+
+    function access(uint256 id, Permission memory perm) onlySender(perm) onlyAuthorized() public view returns (string memory) {
+        return blobs[id].key.sealoutput(perm.publicKey);
+    }
+
+    function accessBatch(uint256[] memory ids, Permission memory perm) onlySender(perm) public view returns (string[] memory) {
+        string[] memory result = new string[](ids.length);
+        for (uint256 i = 0; i < ids.length; i++) {
+            result[i] = access(ids[i], perm);
+        }
+        return result;
+    }
+
+    function permit(address user, bool permission) public onlyOwner {
+        permissions[user] = permission;
+    }
+
 }

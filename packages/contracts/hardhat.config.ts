@@ -17,7 +17,7 @@ const config: HardhatUserConfig = {
   defaultNetwork: "localfhenix",
   networks: {
     localfhenix: {
-      url: "http://localfhenix_hh_plugin:8547"
+      url: "https://api.helium.fhenix.zone"
     }
   },
 };

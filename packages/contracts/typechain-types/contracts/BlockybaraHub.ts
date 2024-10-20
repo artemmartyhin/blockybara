@@ -25,41 +25,16 @@ import type {
   Listener,
 } from "ethers";
 
-export type InEuint64Struct = { data: BytesLike; securityZone: BigNumberish };
-
-export type InEuint64StructOutput = [data: string, securityZone: bigint] & {
-  data: string;
-  securityZone: bigint;
-};
-
-export type PermissionStruct = { publicKey: BytesLike; signature: BytesLike };
-
-export type PermissionStructOutput = [publicKey: string, signature: string] & {
-  publicKey: string;
-  signature: string;
-};
-
-export declare namespace BlockybaraHub {
-  export type BlobStruct = { data: BytesLike; key: InEuint64Struct };
-
-  export type BlobStructOutput = [data: string, key: InEuint64StructOutput] & {
-    data: string;
-    key: InEuint64StructOutput;
-  };
-}
-
 export interface BlockybaraHubInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "containers"
       | "create2"
       | "eip712Domain"
-      | "fetch"
-      | "fetchAll"
-      | "fetchKeys"
-      | "fetchManifest"
       | "owner"
       | "renounceOwnership"
       | "transferOwnership"
+      | "users"
   ): FunctionFragment;
 
   getEvent(
@@ -70,28 +45,13 @@ export interface BlockybaraHubInterface extends Interface {
   ): EventFragment;
 
   encodeFunctionData(
-    functionFragment: "create2",
-    values: [BlockybaraHub.BlobStruct, BlockybaraHub.BlobStruct]
+    functionFragment: "containers",
+    values: [BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "create2", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "eip712Domain",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "fetch",
-    values: [BigNumberish, PermissionStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "fetchAll",
-    values: [PermissionStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "fetchKeys",
-    values: [BigNumberish, PermissionStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "fetchManifest",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -102,17 +62,12 @@ export interface BlockybaraHubInterface extends Interface {
     functionFragment: "transferOwnership",
     values: [AddressLike]
   ): string;
+  encodeFunctionData(functionFragment: "users", values: [AddressLike]): string;
 
+  decodeFunctionResult(functionFragment: "containers", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "create2", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "eip712Domain",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "fetch", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "fetchAll", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "fetchKeys", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "fetchManifest",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
@@ -124,6 +79,7 @@ export interface BlockybaraHubInterface extends Interface {
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "users", data: BytesLike): Result;
 }
 
 export namespace CreateEvent {
@@ -205,11 +161,9 @@ export interface BlockybaraHub extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
-  create2: TypedContractMethod<
-    [manifest: BlockybaraHub.BlobStruct, endpoint: BlockybaraHub.BlobStruct],
-    [void],
-    "nonpayable"
-  >;
+  containers: TypedContractMethod<[arg0: BigNumberish], [string], "view">;
+
+  create2: TypedContractMethod<[], [void], "nonpayable">;
 
   eip712Domain: TypedContractMethod<
     [],
@@ -227,26 +181,6 @@ export interface BlockybaraHub extends BaseContract {
     "view"
   >;
 
-  fetch: TypedContractMethod<
-    [id: BigNumberish, permission: PermissionStruct],
-    [string],
-    "view"
-  >;
-
-  fetchAll: TypedContractMethod<
-    [permission: PermissionStruct],
-    [string[]],
-    "view"
-  >;
-
-  fetchKeys: TypedContractMethod<
-    [id: BigNumberish, permission: PermissionStruct],
-    [[string, string]],
-    "view"
-  >;
-
-  fetchManifest: TypedContractMethod<[id: BigNumberish], [string], "view">;
-
   owner: TypedContractMethod<[], [string], "view">;
 
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
@@ -257,17 +191,18 @@ export interface BlockybaraHub extends BaseContract {
     "nonpayable"
   >;
 
+  users: TypedContractMethod<[arg0: AddressLike], [string], "view">;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
 
   getFunction(
+    nameOrSignature: "containers"
+  ): TypedContractMethod<[arg0: BigNumberish], [string], "view">;
+  getFunction(
     nameOrSignature: "create2"
-  ): TypedContractMethod<
-    [manifest: BlockybaraHub.BlobStruct, endpoint: BlockybaraHub.BlobStruct],
-    [void],
-    "nonpayable"
-  >;
+  ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "eip712Domain"
   ): TypedContractMethod<
@@ -286,26 +221,6 @@ export interface BlockybaraHub extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "fetch"
-  ): TypedContractMethod<
-    [id: BigNumberish, permission: PermissionStruct],
-    [string],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "fetchAll"
-  ): TypedContractMethod<[permission: PermissionStruct], [string[]], "view">;
-  getFunction(
-    nameOrSignature: "fetchKeys"
-  ): TypedContractMethod<
-    [id: BigNumberish, permission: PermissionStruct],
-    [[string, string]],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "fetchManifest"
-  ): TypedContractMethod<[id: BigNumberish], [string], "view">;
-  getFunction(
     nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
@@ -314,6 +229,9 @@ export interface BlockybaraHub extends BaseContract {
   getFunction(
     nameOrSignature: "transferOwnership"
   ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "users"
+  ): TypedContractMethod<[arg0: AddressLike], [string], "view">;
 
   getEvent(
     key: "Create"
